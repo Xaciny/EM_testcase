@@ -1,0 +1,37 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    networks:
+      - app_net
+    expose:
+      - "8080"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  nginx:
+    image: ${NGINX_IMAGE}
+    container_name: nginx
+    depends_on:
+      - backend
+    ports:
+      - "${NGINX_PORT}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - app_net
+    restart: unless-stopped
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  app_net:
+    name: ${PROJECT_NET}
+    driver: bridge
